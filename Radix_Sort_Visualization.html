@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .bar {
+            width: 20px;
+            margin: 1px;
+            display: inline-block;
+            vertical-align: bottom;
+            background-color: lightblue;
+        }
+    </style>
+</head>
+<body>
+    <div id="inputForm">
+        <form onsubmit="startVisualization(event)">
+            <h1>Radix Sort Visualization</h1>
+            <label for="arraySize">Enter Array Size:</label>
+            <input type="number" id="arraySize" name="arraySize" required>
+            <br>
+            <label for="arrayElements">Enter Array Elements:</label>
+            <input type="text" id="arrayElements" name="arrayElements" required placeholder="input non-negative integers">
+            <br>
+            <button id="mybutton" type="submit">Sort</button>
+        </form>
+    </div>
+
+    <div id="barsContainer">
+        <div id="bars"></div>
+    </div>
+
+    <script>
+        // Function to create and display bars representing array elements
+        function displayBars(array, digitIndex) {
+            var barsDiv = document.getElementById("bars");
+            barsDiv.innerHTML = "";
+
+            for (var i = 0; i < array.length; i++) {
+                var value = array[i];
+                var digitValue = getDigitValue(value, digitIndex);
+                var barHeight = digitValue * 10; // Scale factor to make bars visible
+                var bar = document.createElement("div");
+                bar.className = "bar";
+                bar.style.height = barHeight + "px";
+
+                var valueSpan = document.createElement("span");
+                valueSpan.textContent = value;
+
+                bar.appendChild(valueSpan);
+                barsDiv.appendChild(bar);
+            }
+        }
+
+        // Function to get the value of a specific digit in a number
+        function getDigitValue(number, digitIndex) {
+            return Math.floor(number / Math.pow(10, digitIndex)) % 10;
+        }
+
+        // Function to perform Radix sort and update the visualization
+        async function radixSort(array) {
+            var maxDigitCount = getMaxDigitCount(array);
+
+            for (var i = 0; i < maxDigitCount; i++) {
+                var buckets = Array.from({ length: 10 }, () => []);
+
+                for (var j = 0; j < array.length; j++) {
+                    var digitValue = getDigitValue(array[j], i);
+                    buckets[digitValue].push(array[j]);
+
+                    // Update visualization
+                    displayBars(array, i);
+                    await sleep(500); // Delay for visualization
+                }
+
+                array = buckets.flat();
+            }
+
+            // Final visualization with sorted array
+            displayBars(array, -1);
+        }
+
+        // Helper function to get the maximum digit count in the array
+        function getMaxDigitCount(array) {
+            var max = 0;
+            for (var i = 0; i < array.length; i++) {
+                max = Math.max(max, Math.floor(Math.log10(array[i]) + 1));
+            }
+            return max;
+        }
+
+        // Helper function for delaying execution
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Function to start the visualization
+        async function startVisualization(event) {
+            event.preventDefault(); // Prevent form submission
+
+            var arraySizeInput = document.getElementById("arraySize");
+            var arrayElementsInput = document.getElementById("arrayElements");
+
+            var n = parseInt(arraySizeInput.value);
+            var array = arrayElementsInput.value
+                .split(" ")
+                .map(element => parseInt(element));
+
+            await radixSort(array);
+
+            console.log("Sorted array:", array);
+        }
+    </script>
+</body>
+</html>

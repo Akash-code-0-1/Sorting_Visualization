@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .node {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 2px solid black;
+            text-align: center;
+            line-height: 40px;
+            margin: 5px;
+        } 
+
+        .edge {
+            position: absolute;
+            width: 2px;
+            background-color: black;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Topological Sort Visualization</h1>
+    <div id="graphContainer" style="position: relative;">
+    </div>
+    <br>
+    <button id="mybutton" onclick="startVisualization()">Sort</button>
+
+    <script>
+        function createNode(id) {
+            var node = document.createElement("div");
+            node.className = "node";
+            node.textContent = id;
+            return node;
+        }
+
+        function createEdge(from, to) {
+            var fromNode = document.getElementById("node_" + from);
+            var toNode = document.getElementById("node_" + to);
+
+            var edge = document.createElement("div");
+            edge.className = "edge";
+            edge.style.left = fromNode.offsetLeft + fromNode.offsetWidth / 2 + "px";
+            edge.style.top = fromNode.offsetTop + fromNode.offsetHeight + "px";
+            edge.style.height = (toNode.offsetTop - fromNode.offsetTop - fromNode.offsetHeight) + "px";
+
+            document.getElementById("graphContainer").appendChild(edge);
+        }
+
+        async function topologicalSort(adjList) {
+            var indegree = new Array(adjList.length).fill(0);
+            var queue = [];
+
+            for (var u = 0; u < adjList.length; u++) {
+                for (var v of adjList[u]) {
+                    indegree[v]++;
+                }
+            }
+
+            for (var i = 0; i < indegree.length; i++) {
+                if (indegree[i] === 0) {
+                    queue.push(i);
+                }
+            }
+
+            var sorted = [];
+            while (queue.length > 0) {
+                var u = queue.shift();
+                sorted.push(u);
+
+                for (var v of adjList[u]) {
+                    indegree[v]--;
+                    if (indegree[v] === 0) {
+                        queue.push(v);
+                    }
+                }
+
+                await sleep(1000); // Delay for visualization
+                displaySorted(sorted);
+            }
+        }
+
+        function displaySorted(sorted) {
+            var graphContainer = document.getElementById("graphContainer");
+            graphContainer.innerHTML = "";
+
+            for (var i = 0; i < sorted.length; i++) {
+                var node = createNode(sorted[i]);
+                node.style.left = (i * 50) + "px";
+                graphContainer.appendChild(node);
+            }
+
+            for (var i = 1; i < sorted.length; i++) {
+                createEdge(sorted[i - 1], sorted[i]);
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function startVisualization() {
+            var adjList = [
+                [1, 2],
+                [2, 3],
+                [4],
+                [4, 5],
+                [],
+                []
+            ];
+
+            await topologicalSort(adjList);
+        }
+    </script>
+</body>
+</html>
